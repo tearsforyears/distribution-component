@@ -26,7 +26,7 @@ public class TestController {
         AtomicInteger in = new AtomicInteger(0);
         for (int i = 0; i < taskNum; i++) {
             pool.submit(()->{
-                if(limiter.tryAcquire()){
+                if(limiter.tryAcquire("usertoken")){
                     System.out.println("放行调用接口");
                     // 调用接口
 //                    System.out.println(in.getAndIncrement());

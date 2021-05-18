@@ -29,21 +29,21 @@ public class RedisRateLimiter {
     RedisTemplate redisTemplate;
 
 
-    public Boolean tryAcquire() {
+    public Boolean tryAcquire(String usertoken) {
         // 有可能出现多个线程调用,使用ThreadLocal
         SimpleDateFormat df = ThreadSafeDateFormatter.dateFormatThreadLocal.get();
-        String key = "limit count"+df.format(new Date());
+        String key = usertoken + " limit count " + df.format(new Date());
         long expired = 1000L + new Random().nextInt(1000);
         // 如果不存在就加入一个key
         try {
-            redisTemplate.opsForValue().setIfAbsent(key,0L,expired,TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().setIfAbsent(key, 0L, expired, TimeUnit.MILLISECONDS);
             // redis实现了一个分布式自增的类
-            RedisAtomicInteger i = new RedisAtomicInteger(key,redisTemplate.getConnectionFactory());
+            RedisAtomicInteger i = new RedisAtomicInteger(key, redisTemplate.getConnectionFactory());
             int val = i.getAndIncrement();
-            if(val >= 1000){
+            if (val >= 1000) {
                 // 超过1000的全部给false,此时数据库的值在增加,但接口全部不予以调用
                 return false;
-            }else{
+            } else {
                 return true;
             }
         } catch (Exception e) {
